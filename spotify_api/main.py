@@ -56,26 +56,27 @@ def search_track(query, access_token=get_token(), limit=1, market='BR'):
     }
 
     response = requests.get(url, headers=headers, params=params)
+    
     data = response.json()
-
     tracks = data.get('tracks', {}).get('items', [])
     if response.status_code == HTTPStatus.OK:
         data = response.json()
 
         tracks = data.get('tracks', {}).get('items', [])
+        # print(tracks)
         lista_musicas = []
         if tracks:
             for musica in tracks:
                 pixel_img = 300
                 music = musica['name']
-                artista = ', '.join([artist['name'] for artist in musica['artists']])
+                artista = [artist['name'] for artist in musica['artists']]
                 img = [
                     image['url']
                     for image in musica['album']['images']
                     if image['height'] == pixel_img
                 ]
                 album = musica['album']['name']
-                url_letra = search_lyrics(f'{artista} {music}')
+                url_letra = search_lyrics(f'{music}')
                 letra = get_lyrics(url_letra)
                 uri = musica['uri']
             lista_musicas.append({
@@ -91,4 +92,4 @@ def search_track(query, access_token=get_token(), limit=1, market='BR'):
             print('Erro na busca:', response.status_code, response.text)
 
 
-search_track('Até o Sol Raiar')
+search_track('Eu Me Remexo Muito')
