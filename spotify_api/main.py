@@ -12,8 +12,6 @@ def search_lyrics(query, access_token=GENIUS_TOKEN):
 
     params = {'q': query}
 
-    headers = {'Authorization': f'Bearer {access_token}'}
-
     response = requests.get(url, params=params, headers=headers)
 
     if response.status_code == HTTPStatus.OK:
@@ -56,7 +54,7 @@ def search_track(query, access_token=get_token(), limit=1, market='BR'):
     }
 
     response = requests.get(url, headers=headers, params=params)
-    
+
     data = response.json()
     tracks = data.get('tracks', {}).get('items', [])
     if response.status_code == HTTPStatus.OK:
