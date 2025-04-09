@@ -1,5 +1,6 @@
-from sqlalchemy import select
 from dataclasses import asdict
+
+from sqlalchemy import select
 
 from spotify_api.models import User
 
@@ -20,5 +21,5 @@ def test_create_user(session, mock_db_time):
         'password': 'minha_senha',
         'email': 'edsonr@gmail.com',
         'created_at': time,
-        'created_at': time
+        'updated_at': time,
     }
