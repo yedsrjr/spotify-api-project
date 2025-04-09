@@ -58,6 +58,16 @@ def read_users(skip: int = 0, limit: int = 100, session: Session = Depends(get_s
     return {'users': users}
 
 
+@app.get('/users/{user_id}', status_code=HTTPStatus.OK, response_model=UserPublic)
+def read_users_with_id(user_id: int, session: Session = Depends(get_session)):
+    user = session.scalar(select(User).where(User.id == user_id))
+
+    if not user:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='User not found')
+
+    return user
+
+
 @app.put('/users/{user_id}', status_code=HTTPStatus.OK, response_model=UserPublic)
 def update_user(user_id: int, user: UserSchema, session: Session = Depends(get_session)):
     db_user = session.scalar(select(User).where(User.id == user_id))
@@ -73,6 +83,7 @@ def update_user(user_id: int, user: UserSchema, session: Session = Depends(get_s
         session.refresh(db_user)
 
         return db_user
+
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT, detail='Username or Email already exists'
