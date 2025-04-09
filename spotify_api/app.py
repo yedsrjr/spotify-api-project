@@ -3,6 +3,7 @@ from http import HTTPStatus
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from spotify_api.database import get_session
@@ -10,8 +11,6 @@ from spotify_api.models import User
 from spotify_api.schemas import Message, UserList, UserPublic, UserSchema
 
 app = FastAPI(title='Karoake Project')
-
-database = []
 
 
 @app.get('/', status_code=HTTPStatus.OK, response_model=Message)
@@ -66,17 +65,21 @@ def update_user(user_id: int, user: UserSchema, session: Session = Depends(get_s
     if not db_user:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='User not found')
 
-    db_user.username = user.username
-    db_user.password = user.password
-    db_user.email = user.email
+    try:
+        db_user.username = user.username
+        db_user.password = user.password
+        db_user.email = user.email
+        session.commit()
+        session.refresh(db_user)
 
-    session.commit()
-    session.refresh(db_user)
+        return db_user
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT, detail='Username or Email already exists'
+        )
 
-    return db_user
 
-
-@app.delete('/users/{user_id}', status_code=HTTPStatus.OK, response_model=Message)
+@app.delete('/users/{user_id}', response_model=Message)
 def delete_user(user_id: int, session: Session = Depends(get_session)):
     db_user = session.scalar(select(User).where(User.id == user_id))
 
