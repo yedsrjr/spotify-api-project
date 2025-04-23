@@ -43,7 +43,7 @@ def user(session):
     password = 'teste123'
 
     user = User(
-        username='teste', email='teste@example.com', password=get_password_hash('teste123')
+        username='teste', email='teste@example.com', password=get_password_hash(password)
     )
 
     session.add(user)
