@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 from spotify_api.app import app
 from spotify_api.database import get_session
 from spotify_api.models import User, table_registry
+from spotify_api.security import get_password_hash
 
 
 @pytest.fixture
@@ -39,10 +40,17 @@ def session():
 
 @pytest.fixture
 def user(session):
-    user = User(username='teste', email='teste@example.com', password='teste123')
+    password = 'teste123'
+
+    user = User(
+        username='teste', email='teste@example.com', password=get_password_hash('teste123')
+    )
+
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    user.clean_password = password
 
     return user
 
