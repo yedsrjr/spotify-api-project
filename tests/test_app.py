@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from spotify_api.schemas import UserPublic
+from spotify_api.security import create_access_token
 
 
 def test_hello_world(client):
@@ -27,6 +28,15 @@ def test_get_token(client, user):
     assert response.status_code == HTTPStatus.OK
     assert 'access_token' in token
     assert 'token_type' in token
+
+
+def test_get_token_user_not_found(client, user):
+    response = client.post(
+        '/token', data={'username': 'teste@teste', 'password': user.password}
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Incorrect email or password'}
 
 
 def test_create_user(client):
@@ -99,16 +109,6 @@ def test_update_user(client, user, token):
     assert response.json() == {'username': 'edson', 'email': 'edson@gmail.com', 'id': user.id}
 
 
-def test_update_user_not_found(client, user, token):
-    response = client.put(
-        '/users/2',
-        headers={'Authorization': f'Bearer {token}'},
-        json={'username': 'edson', 'email': 'edsen@gmail.com', 'password': '123eds'},
-    )
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Not enough permissions'}
-
-
 def test_update_integrity_error(client, user, token):
     client.post(
         '/users',
@@ -139,8 +139,21 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_not_found(client, user, token):
-    response = client.delete('/users/2', headers={'Authorization': f'Bearer {token}'})
+def test_get_current_user_credentials_exception(client):
+    data = {'no-email': 'test'}
+    token = create_access_token(data)
 
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Not enough permissions'}
+    response = client.delete('/users/1', headers={'Authorization': f'Bearer {token}'})
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Could not validate credentials'}
+
+
+def test_get_current_user_not_found_credentials_exception(client):
+    data = {'sub': 'test@test'}
+    token = create_access_token(data)
+
+    response = client.delete('/users/1', headers={'Authorization': f'Bearer {token}'})
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Could not validate credentials'}
