@@ -1,8 +1,9 @@
 import re
 from http import HTTPStatus
 
-from auth import GENIUS_TOKEN, get_token, requests
 from bs4 import BeautifulSoup
+
+from spotify_api.auth_spotify import GENIUS_TOKEN, get_token, requests
 
 
 def search_lyrics(query, access_token=GENIUS_TOKEN):
